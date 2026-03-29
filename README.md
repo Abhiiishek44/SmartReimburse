@@ -98,7 +98,7 @@ You can also set `TESSERACT_CMD` to the full path of the binary.
 ---
 
 ## ✅ Notes
-- Local SQLite is fine for development.
+- Local PostgreSQL is fine for development.
 - Use Alembic for schema changes instead of deleting the database.
 - If you add new models or columns, run:
   ```bash
