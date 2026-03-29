@@ -120,8 +120,20 @@ def submit_expense(db: Session, expense_id: uuid.UUID, employee_id: uuid.UUID, c
     expense.status = "pending"
 
     employee = db.query(User).filter(User.id == employee_id).first()
-    if not employee or not employee.manager_id:
-        raise HTTPException(status_code=400, detail="Employee must have a manager assigned before submitting")
+    if not employee:
+        raise HTTPException(status_code=404, detail="Employee not found")
+
+    if not employee.manager_id:
+        managers = db.query(User).filter(
+            User.company_id == company_id,
+            User.role == "manager",
+        ).order_by(User.created_at.asc()).all()
+        if len(managers) == 1:
+            employee.manager_id = managers[0].id
+            db.commit()
+            db.refresh(employee)
+        else:
+            raise HTTPException(status_code=400, detail="Employee must have a manager assigned before submitting")
 
     admin_user = db.query(User).filter(
         User.company_id == company_id,

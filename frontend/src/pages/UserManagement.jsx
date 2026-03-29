@@ -89,9 +89,9 @@ const UserManagement = () => {
                             </div>
                             {form.role === 'employee' && (
                                 <div className="sm:col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Assign Manager (optional)</label>
-                                    <select value={form.manager_id} onChange={e => setForm({...form, manager_id: e.target.value})} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                        <option value="">-- No manager --</option>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Assign Manager *</label>
+                                    <select required value={form.manager_id} onChange={e => setForm({...form, manager_id: e.target.value})} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                        <option value="">Select manager</option>
                                         {managers.map(m => <option key={m.id} value={m.id}>{m.name} ({m.email})</option>)}
                                     </select>
                                 </div>

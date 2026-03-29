@@ -26,8 +26,10 @@ def create_user(db: Session, company_id: uuid.UUID, data: UserCreate) -> User:
     if data.role not in ("manager", "employee"):
         raise HTTPException(status_code=400, detail="Role must be 'manager' or 'employee'")
 
-    # If employee, validate manager_id
-    if data.role == "employee" and data.manager_id:
+    # If employee, require manager_id and validate
+    if data.role == "employee":
+        if not data.manager_id:
+            raise HTTPException(status_code=400, detail="Employee must have a manager assigned")
         manager = db.query(User).filter(User.id == data.manager_id, User.company_id == company_id, User.role == "manager").first()
         if not manager:
             raise HTTPException(status_code=400, detail="Manager not found in your company")
