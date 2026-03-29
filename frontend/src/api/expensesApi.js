@@ -1,5 +1,9 @@
 import api from './axios';
 
+// OCR: scan a receipt image and extract expense fields
+export const scanReceipt = (formData) =>
+    api.post('/ocr', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+
 export const createExpense = (data) => {
 	const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
 	return api.post('/expenses', data, isFormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined);

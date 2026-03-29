@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { createExpense, submitExpense } from '../api/expensesApi';
 import { useNavigate } from 'react-router';
 import AppLayout from '../components/AppLayout';
+import OCRUpload from '../components/OCRUpload';
 
 const CATEGORIES = ['Travel', 'Meals', 'Accommodation', 'Equipment', 'Software', 'Training', 'Medical', 'Other'];
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'INR', 'JPY', 'CAD', 'AUD', 'SGD', 'AED'];
@@ -27,11 +28,12 @@ const SubmitExpense = () => {
 
     const handleFileChange = (e) => {
         const file = e.target.files?.[0] || null;
-        if (!file) {
-            setReceiptFile(null);
-            setReceiptError('');
-            return;
-        }
+        applyReceiptFile(file);
+    };
+
+    // Shared file validation used by both manual picker and OCR component
+    const applyReceiptFile = (file) => {
+        if (!file) { setReceiptFile(null); setReceiptError(''); return; }
         if (!ALLOWED_TYPES.includes(file.type)) {
             setReceiptFile(null);
             setReceiptError('Only JPG, PNG, or PDF files are allowed.');
@@ -44,6 +46,19 @@ const SubmitExpense = () => {
         }
         setReceiptError('');
         setReceiptFile(file);
+    };
+
+    // Called by OCRUpload when scan succeeds — merge extracted fields into form
+    const handleOCRExtracted = (data) => {
+        setForm((prev) => ({
+            ...prev,
+            original_amount: data.amount != null ? String(data.amount) : prev.original_amount,
+            expense_date:    data.date     || prev.expense_date,
+            category:        CATEGORIES.includes(data.category) ? data.category : prev.category,
+            description:     data.vendor
+                ? `${data.vendor}${data.description ? ' — ' + data.description : ''}`
+                : (data.description || prev.description),
+        }));
     };
 
     const handleSubmit = async (e) => {
@@ -105,6 +120,12 @@ const SubmitExpense = () => {
                     </div>
                 ) : (
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        {/* ── OCR Scanner ─────────────────────────────────── */}
+                        <OCRUpload
+                            onExtracted={handleOCRExtracted}
+                            onFileSelected={applyReceiptFile}
+                        />
+
                         <form onSubmit={handleSubmit} className="space-y-5">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>

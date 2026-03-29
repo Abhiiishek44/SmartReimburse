@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
 from app.routes import auth, admin
-from app.routes import company, users, expenses
+from app.routes import company, users, expenses, ocr
 
 # Create all tables
 Base.metadata.create_all(bind=engine)
@@ -29,6 +29,7 @@ app.include_router(admin.router)
 app.include_router(company.router)
 app.include_router(users.router)
 app.include_router(expenses.router)
+app.include_router(ocr.router)
 
 @app.get("/")
 def read_root():
