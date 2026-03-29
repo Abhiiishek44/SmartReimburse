@@ -7,11 +7,10 @@ const navByRole = {
         { to: '/admin', label: '📊 Dashboard' },
         { to: '/company', label: '🏢 Company' },
         { to: '/users', label: '👥 Users' },
-        { to: '/admin#rules', label: '📋 Rules' },
         { to: '/expenses/all', label: '🧾 All Expenses' },
     ],
     manager: [
-        { to: '/approvals', label: '⏳ Pending Approvals' },
+        { to: '/manager/approvals', label: '✅ Manager Approvals' },
         { to: '/expenses/team', label: '👥 Team Expenses' },
         { to: '/expenses/my', label: '🧾 My Expenses' },
         { to: '/expenses/submit', label: '➕ Submit Expense' },

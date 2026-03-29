@@ -11,3 +11,7 @@ export const submitExpense = (expenseId) => api.post(`/expenses/${expenseId}/sub
 export const getPendingApprovals = () => api.get('/approvals/pending');
 export const approveExpense = (expenseId, comment) => api.post(`/approvals/${expenseId}/approve`, { comment });
 export const rejectExpense = (expenseId, comment) => api.post(`/approvals/${expenseId}/reject`, { comment });
+
+export const getManagerPendingApprovals = () => api.get('/manager/approvals/pending');
+export const approveManagerExpense = (expenseId) => api.post(`/manager/approvals/${expenseId}/approve`);
+export const rejectManagerExpense = (expenseId) => api.post(`/manager/approvals/${expenseId}/reject`);

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from datetime import date
 from app.database import get_db
-from app.dependencies import get_current_user
+from app.dependencies import get_current_user, get_manager_user
 from app.models import User
 from app.schemas.expenses import ExpenseResponse, ApproveRejectRequest
 from app.services import expense_service
@@ -74,4 +74,23 @@ def approve_expense(expense_id: str, data: ApproveRejectRequest, current_user: U
 
 @router.post("/approvals/{expense_id}/reject", response_model=ExpenseResponse)
 def reject_expense(expense_id: str, data: ApproveRejectRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return expense_service.reject_expense(db, expense_id, current_user.id, current_user.company_id, data)
+
+
+# ─── Manager Approvals ───────────────────────────────────────────────────────
+
+@router.get("/manager/approvals/pending", response_model=List[ExpenseResponse])
+def manager_pending_approvals(current_user: User = Depends(get_manager_user), db: Session = Depends(get_db)):
+    return expense_service.get_pending_approvals(db, current_user.id, current_user.company_id)
+
+
+@router.post("/manager/approvals/{expense_id}/approve", response_model=ExpenseResponse)
+def manager_approve_expense(expense_id: str, current_user: User = Depends(get_manager_user), db: Session = Depends(get_db)):
+    data = ApproveRejectRequest(comment=None)
+    return expense_service.approve_expense(db, expense_id, current_user.id, current_user.company_id, data)
+
+
+@router.post("/manager/approvals/{expense_id}/reject", response_model=ExpenseResponse)
+def manager_reject_expense(expense_id: str, current_user: User = Depends(get_manager_user), db: Session = Depends(get_db)):
+    data = ApproveRejectRequest(comment=None)
     return expense_service.reject_expense(db, expense_id, current_user.id, current_user.company_id, data)

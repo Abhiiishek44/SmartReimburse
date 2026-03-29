@@ -10,6 +10,7 @@ import UserManagement from './pages/UserManagement';
 import ExpenseListPage from './pages/ExpenseListPage';
 import MyExpenses from './pages/MyExpenses';
 import PendingApprovals from './pages/PendingApprovals';
+import ManagerApprovals from './pages/ManagerApprovals';
 import SubmitExpense from './pages/SubmitExpense';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -50,6 +51,11 @@ function App() {
             <Route path="/approvals" element={
               <ProtectedRoute allowedRoles={['manager', 'admin']}>
                 <PendingApprovals />
+              </ProtectedRoute>
+            } />
+            <Route path="/manager/approvals" element={
+              <ProtectedRoute allowedRoles={['manager']}>
+                <ManagerApprovals />
               </ProtectedRoute>
             } />
             <Route path="/expenses/all" element={
