@@ -12,7 +12,7 @@ frontend/  # React + Vite + Tailwind
 ## ✅ Backend Overview
 
 - **Framework**: FastAPI
-- **Database**: SQLite (local), SQLAlchemy ORM
+- **Database**: PostgreSQL (local), SQLAlchemy ORM
 - **Migrations**: Alembic
 - **Auth**: JWT (access + refresh tokens)
 - **OCR**: pytesseract + Pillow
