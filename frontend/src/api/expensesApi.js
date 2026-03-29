@@ -11,8 +11,10 @@ export const createExpense = (data) => {
 export const getMyExpenses = () => api.get('/expenses/my');
 export const getTeamExpenses = () => api.get('/expenses/team');
 export const getAllExpenses = () => api.get('/expenses/all');
+export const getExpenseById = (expenseId) => api.get(`/expenses/${expenseId}`);
 export const submitExpense = (expenseId) => api.post(`/expenses/${expenseId}/submit`);
 export const getPendingApprovals = () => api.get('/approvals/pending');
+export const getApprovalHistory = () => api.get('/approvals/history');
 export const approveExpense = (expenseId, comment) => api.post(`/approvals/${expenseId}/approve`, { comment });
 export const rejectExpense = (expenseId, comment) => api.post(`/approvals/${expenseId}/reject`, { comment });
 

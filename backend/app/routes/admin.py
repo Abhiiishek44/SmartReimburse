@@ -6,7 +6,7 @@ from app.dependencies import get_admin_user
 from app.models import User
 from app.schemas.admin import (
     ApprovalRuleCreate, ApprovalRuleUpdate, ApprovalRuleResponse,
-    AddApproversRequest, UserListItem, DashboardStats
+    AddApproversRequest, UserListItem, DashboardStats, ApprovalConfigUpdate, ApprovalConfigResponse
 )
 from app.services import admin_service
 
@@ -20,6 +20,37 @@ def get_dashboard(
 ):
     """Admin dashboard statistics."""
     return admin_service.get_dashboard_stats(db, current_user.company_id)
+
+
+@router.get("/approval-config", response_model=ApprovalConfigResponse)
+def get_approval_config(
+    current_user: User = Depends(get_admin_user),
+    db: Session = Depends(get_db)
+):
+    rule = admin_service.get_approval_config(db, current_user.company_id)
+    return {
+        "rule_id": rule.id,
+        "approval_type": rule.approval_type,
+        "percentage_value": rule.percentage_value,
+        "specific_approver_id": rule.specific_approver_id,
+        "approvers": rule.approvers,
+    }
+
+
+@router.put("/approval-config", response_model=ApprovalConfigResponse)
+def update_approval_config(
+    data: ApprovalConfigUpdate,
+    current_user: User = Depends(get_admin_user),
+    db: Session = Depends(get_db)
+):
+    rule = admin_service.update_approval_config(db, current_user.company_id, data)
+    return {
+        "rule_id": rule.id,
+        "approval_type": rule.approval_type,
+        "percentage_value": rule.percentage_value,
+        "specific_approver_id": rule.specific_approver_id,
+        "approvers": rule.approvers,
+    }
 
 
 @router.get("/users", response_model=List[UserListItem])

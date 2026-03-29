@@ -21,6 +21,7 @@ class ExpenseApprovalResponse(BaseModel):
     comment: Optional[str]
     approved_at: Optional[datetime]
     approver_name: Optional[str] = None
+    approver_role: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -40,6 +41,10 @@ class ExpenseResponse(BaseModel):
     receipt_file: Optional[str] = None
     receipt_original_name: Optional[str] = None
     status: str
+    current_approval_step: Optional[int] = None
+    approval_type: Optional[str] = None
+    percentage_value: Optional[float] = None
+    specific_approver_id: Optional[uuid.UUID] = None
     created_at: datetime
     employee_name: Optional[str] = None
     approval_steps: List[ExpenseApprovalResponse] = []

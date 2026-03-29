@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from app.models import ApprovalRule, ApprovalRuleApprover, User
-from app.schemas.admin import ApprovalRuleCreate, ApprovalRuleUpdate, AddApproversRequest
+from app.schemas.admin import ApprovalRuleCreate, ApprovalRuleUpdate, AddApproversRequest, ApprovalConfigUpdate
 import uuid
 
 
@@ -16,6 +16,62 @@ def get_dashboard_stats(db: Session, company_id: uuid.UUID) -> dict:
         "total_managers": total_managers,
         "total_rules": total_rules,
     }
+
+
+def get_approval_config(db: Session, company_id: uuid.UUID):
+    rule = (
+        db.query(ApprovalRule)
+        .filter(ApprovalRule.company_id == company_id)
+        .order_by(ApprovalRule.created_at.desc())
+        .first()
+    )
+    if not rule:
+        rule = ApprovalRule(
+            company_id=company_id,
+            rule_name="Default Approval Flow",
+            description="Default approval configuration",
+            approval_type="SEQUENTIAL",
+            percentage_value=None,
+            specific_approver_id=None,
+        )
+        db.add(rule)
+        db.commit()
+        db.refresh(rule)
+    return rule
+
+
+def update_approval_config(db: Session, company_id: uuid.UUID, data: ApprovalConfigUpdate):
+    rule = get_approval_config(db, company_id)
+    rule.rule_name = "Default Approval Flow"
+    rule.description = "Default approval configuration"
+    rule.approval_type = data.approval_type
+    rule.percentage_value = data.percentage_value
+    rule.specific_approver_id = data.specific_approver_id
+
+    db.query(ApprovalRuleApprover).filter(ApprovalRuleApprover.rule_id == rule.id).delete()
+
+    approver_ids = [entry.approver_id for entry in data.approvers]
+    if len(approver_ids) != len(set(approver_ids)):
+        raise HTTPException(status_code=400, detail="Each approval step must use a different approver")
+
+    for entry in data.approvers:
+        user = db.query(User).filter(
+            User.id == entry.approver_id,
+            User.company_id == company_id,
+        ).first()
+        if not user:
+            raise HTTPException(status_code=400, detail=f"User {entry.approver_id} not found in your company")
+
+        approver = ApprovalRuleApprover(
+            rule_id=rule.id,
+            approver_id=entry.approver_id,
+            step_order=entry.step_order,
+        )
+        db.add(approver)
+
+    db.commit()
+    db.refresh(rule)
+    return rule
 
 
 # ─── Users ────────────────────────────────────────────────────────────────────
@@ -34,6 +90,9 @@ def create_rule(db: Session, company_id: uuid.UUID, data: ApprovalRuleCreate) ->
         is_manager_approver=data.is_manager_approver,
         is_sequential=data.is_sequential,
         min_approval_percentage=data.min_approval_percentage,
+        approval_type=data.approval_type,
+        percentage_value=data.percentage_value,
+        specific_approver_id=data.specific_approver_id,
     )
     db.add(rule)
     db.commit()
@@ -72,6 +131,12 @@ def update_rule(db: Session, rule_id: uuid.UUID, company_id: uuid.UUID, data: Ap
         rule.is_sequential = data.is_sequential
     if data.min_approval_percentage is not None:
         rule.min_approval_percentage = data.min_approval_percentage
+    if data.approval_type is not None:
+        rule.approval_type = data.approval_type
+    if data.percentage_value is not None:
+        rule.percentage_value = data.percentage_value
+    if data.specific_approver_id is not None:
+        rule.specific_approver_id = data.specific_approver_id
     db.commit()
     db.refresh(rule)
     return rule

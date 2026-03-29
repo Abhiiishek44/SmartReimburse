@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react';
-import { getPendingApprovals, approveExpense, rejectExpense } from '../api/expensesApi';
+import { getPendingApprovals, getApprovalHistory, approveExpense, rejectExpense } from '../api/expensesApi';
 import AppLayout from '../components/AppLayout';
 import StatusBadge from '../components/StatusBadge';
 import api from '../api/axios';
 
 const PendingApprovals = () => {
     const [expenses, setExpenses] = useState([]);
+    const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [actioning, setActioning] = useState({});
     const [commentMap, setCommentMap] = useState({});
     const [expandedId, setExpandedId] = useState(null);
+    const [activeTab, setActiveTab] = useState('pending');
     const buildReceiptUrl = (expense) => {
         if (expense.receipt_file) {
             return `${api.defaults.baseURL}/${expense.receipt_file}`;
@@ -20,7 +22,14 @@ const PendingApprovals = () => {
 
     const load = async () => {
         setLoading(true);
-        try { const r = await getPendingApprovals(); setExpenses(r.data); }
+        try {
+            const [pendingRes, historyRes] = await Promise.all([
+                getPendingApprovals(),
+                getApprovalHistory(),
+            ]);
+            setExpenses(pendingRes.data);
+            setHistory(historyRes.data);
+        }
         catch { setError('Failed to load pending approvals.'); }
         finally { setLoading(false); }
     };
@@ -50,16 +59,31 @@ const PendingApprovals = () => {
                     <p className="text-sm text-gray-500 mt-1">{expenses.length} expense{expenses.length !== 1 ? 's' : ''} awaiting your action</p>
                 </div>
 
+                <div className="flex flex-wrap gap-3">
+                    <button
+                        onClick={() => setActiveTab('pending')}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium border ${activeTab === 'pending' ? 'bg-indigo-600 text-white border-indigo-600' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+                    >
+                        Pending ({expenses.length})
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('history')}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium border ${activeTab === 'history' ? 'bg-indigo-600 text-white border-indigo-600' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+                    >
+                        History ({history.length})
+                    </button>
+                </div>
+
                 {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>}
 
                 {loading ? (
                     <div className="flex justify-center py-16"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" /></div>
-                ) : expenses.length === 0 ? (
+                ) : activeTab === 'pending' && expenses.length === 0 ? (
                     <div className="bg-white rounded-xl border border-gray-200 text-center py-16">
                         <div className="text-4xl mb-3">✅</div>
                         <p className="text-gray-500">No pending approvals. You're all caught up!</p>
                     </div>
-                ) : (
+                ) : activeTab === 'pending' ? (
                     <div className="space-y-4">
                         {expenses.map(exp => (
                             <div key={exp.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
@@ -126,6 +150,33 @@ const PendingApprovals = () => {
                                         </div>
                                     </div>
                                 )}
+                            </div>
+                        ))}
+                    </div>
+                ) : history.length === 0 ? (
+                    <div className="bg-white rounded-xl border border-gray-200 text-center py-16">
+                        <div className="text-4xl mb-3">📁</div>
+                        <p className="text-gray-500">No past approvals yet.</p>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {history.map(exp => (
+                            <div key={exp.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex flex-wrap items-center gap-2 mb-1">
+                                            <span className="font-semibold text-gray-900">{exp.employee_name || 'Employee'}</span>
+                                            <StatusBadge status={exp.status} />
+                                        </div>
+                                        <div className="text-2xl font-bold text-indigo-700">{exp.original_amount.toFixed(2)} <span className="text-base font-normal text-gray-500">{exp.currency}</span></div>
+                                        <div className="flex flex-wrap gap-3 mt-2 text-sm text-gray-500">
+                                            <span>📁 {exp.category}</span>
+                                            <span>📅 {exp.expense_date}</span>
+                                            {exp.description && <span>💬 {exp.description}</span>}
+                                            {buildReceiptUrl(exp) && <a href={buildReceiptUrl(exp)} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline">📎 Receipt</a>}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         ))}
                     </div>

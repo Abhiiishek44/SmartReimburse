@@ -3,6 +3,7 @@ import { getMyExpenses, submitExpense } from '../api/expensesApi';
 import api from '../api/axios';
 import AppLayout from '../components/AppLayout';
 import StatusBadge from '../components/StatusBadge';
+import { Link } from 'react-router';
 
 const MyExpenses = () => {
     const [expenses, setExpenses] = useState([]);
@@ -75,7 +76,9 @@ const MyExpenses = () => {
                                         <th className="text-left px-5 py-3 font-semibold text-gray-600">Category</th>
                                         <th className="text-left px-5 py-3 font-semibold text-gray-600">Description</th>
                                         <th className="text-right px-5 py-3 font-semibold text-gray-600">Amount</th>
-                                        <th className="text-left px-5 py-3 font-semibold text-gray-600">Status</th>
+                                        <th className="text-left px-5 py-3 font-semibold text-gray-600">Manager Approval</th>
+                                        <th className="text-left px-5 py-3 font-semibold text-gray-600">Finance Approval</th>
+                                        <th className="text-left px-5 py-3 font-semibold text-gray-600">Director Approval</th>
                                         <th className="text-left px-5 py-3 font-semibold text-gray-600">Action</th>
                                     </tr>
                                 </thead>
@@ -86,13 +89,37 @@ const MyExpenses = () => {
                                             <td className="px-5 py-3 font-medium">{e.category}</td>
                                             <td className="px-5 py-3 text-gray-500 max-w-xs truncate">{e.description || '—'}</td>
                                             <td className="px-5 py-3 text-right font-mono font-medium">{e.original_amount.toFixed(2)} {e.currency}</td>
-                                            <td className="px-5 py-3"><StatusBadge status={e.status} /></td>
+                                            <td className="px-5 py-3">
+                                                {(() => {
+                                                    const step = e.approval_steps?.find(s => s.approver_role === 'manager');
+                                                    if (!step) return <span className="text-xs text-gray-400">—</span>;
+                                                    const cls = step.status === 'approved' ? 'bg-green-100 text-green-700' : step.status === 'rejected' ? 'bg-red-100 text-red-700' : step.status === 'waiting' ? 'bg-gray-100 text-gray-600' : 'bg-yellow-100 text-yellow-700';
+                                                    return <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${cls}`}>{step.status}</span>;
+                                                })()}
+                                            </td>
+                                            <td className="px-5 py-3">
+                                                {(() => {
+                                                    const step = e.approval_steps?.find(s => s.approver_role === 'finance');
+                                                    if (!step) return <span className="text-xs text-gray-400">—</span>;
+                                                    const cls = step.status === 'approved' ? 'bg-green-100 text-green-700' : step.status === 'rejected' ? 'bg-red-100 text-red-700' : step.status === 'waiting' ? 'bg-gray-100 text-gray-600' : 'bg-yellow-100 text-yellow-700';
+                                                    return <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${cls}`}>{step.status}</span>;
+                                                })()}
+                                            </td>
+                                            <td className="px-5 py-3">
+                                                {(() => {
+                                                    const step = e.approval_steps?.find(s => s.approver_role === 'director');
+                                                    if (!step) return <span className="text-xs text-gray-400">—</span>;
+                                                    const cls = step.status === 'approved' ? 'bg-green-100 text-green-700' : step.status === 'rejected' ? 'bg-red-100 text-red-700' : step.status === 'waiting' ? 'bg-gray-100 text-gray-600' : 'bg-yellow-100 text-yellow-700';
+                                                    return <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${cls}`}>{step.status}</span>;
+                                                })()}
+                                            </td>
                                             <td className="px-5 py-3">
                                                 {e.status === 'draft' && (
                                                     <button onClick={() => handleSubmit(e.id)} className="text-xs text-indigo-600 border border-indigo-200 px-3 py-1 rounded-lg hover:bg-indigo-50 transition font-medium">
                                                         Submit
                                                     </button>
                                                 )}
+                                                <Link to={`/expense/${e.id}`} className="text-xs text-indigo-600 hover:text-indigo-500 ml-2">Details</Link>
                                                 {buildReceiptUrl(e) && (
                                                     <a href={buildReceiptUrl(e)} target="_blank" rel="noreferrer" className="text-xs text-gray-500 hover:text-gray-700 ml-2">Receipt ↗</a>
                                                 )}

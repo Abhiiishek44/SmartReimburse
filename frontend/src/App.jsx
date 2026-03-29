@@ -4,14 +4,16 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import AdminDashboard from './pages/AdminDashboard';
-import ApprovalRules from './pages/ApprovalRules';
+import ApprovalSettings from './pages/ApprovalSettings';
+import FinanceDashboard from './pages/FinanceDashboard';
+import DirectorDashboard from './pages/DirectorDashboard';
 import CompanyProfile from './pages/CompanyProfile';
 import UserManagement from './pages/UserManagement';
 import ExpenseListPage from './pages/ExpenseListPage';
 import MyExpenses from './pages/MyExpenses';
-import PendingApprovals from './pages/PendingApprovals';
 import ManagerApprovals from './pages/ManagerApprovals';
 import SubmitExpense from './pages/SubmitExpense';
+import ExpenseDetail from './pages/ExpenseDetail';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -28,14 +30,34 @@ function App() {
                 <Dashboard />
               </ProtectedRoute>
             } />
+            <Route path="/employee/dashboard" element={
+              <ProtectedRoute allowedRoles={['employee']}>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/manager/dashboard" element={
+              <ProtectedRoute allowedRoles={['manager']}>
+                <ManagerApprovals />
+              </ProtectedRoute>
+            } />
+            <Route path="/finance/dashboard" element={
+              <ProtectedRoute allowedRoles={['finance']}>
+                <FinanceDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/director/dashboard" element={
+              <ProtectedRoute allowedRoles={['director']}>
+                <DirectorDashboard />
+              </ProtectedRoute>
+            } />
             <Route path="/admin" element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AdminDashboard />
               </ProtectedRoute>
             } />
-            <Route path="/admin/rules" element={
+            <Route path="/admin/approval-settings" element={
               <ProtectedRoute allowedRoles={['admin']}>
-                <ApprovalRules />
+                <ApprovalSettings />
               </ProtectedRoute>
             } />
             <Route path="/company" element={
@@ -46,11 +68,6 @@ function App() {
             <Route path="/users" element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <UserManagement />
-              </ProtectedRoute>
-            } />
-            <Route path="/approvals" element={
-              <ProtectedRoute allowedRoles={['manager', 'admin']}>
-                <PendingApprovals />
               </ProtectedRoute>
             } />
             <Route path="/manager/approvals" element={
@@ -71,6 +88,11 @@ function App() {
             <Route path="/expenses/my" element={
               <ProtectedRoute allowedRoles={['employee', 'manager', 'admin']}>
                 <MyExpenses />
+              </ProtectedRoute>
+            } />
+            <Route path="/expense/:id" element={
+              <ProtectedRoute allowedRoles={['employee', 'manager', 'admin', 'finance', 'director']}>
+                <ExpenseDetail />
               </ProtectedRoute>
             } />
             <Route path="/expenses/submit" element={

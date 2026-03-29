@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import AppLayout from '../components/AppLayout';
 import api from '../api/axios';
 import { getManagerPendingApprovals, approveManagerExpense, rejectManagerExpense } from '../api/expensesApi';
-import StatusBadge from '../components/StatusBadge';
 
 const ManagerApprovals = () => {
     const [approvals, setApprovals] = useState([]);
@@ -53,7 +52,7 @@ const ManagerApprovals = () => {
             <div className="space-y-6">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Manager Approvals</h1>
-                    <p className="text-sm text-gray-500 mt-1">{approvals.length} pending approval{approvals.length !== 1 ? 's' : ''}</p>
+                    <p className="text-sm text-gray-500 mt-1">{approvals.length} pending request{approvals.length !== 1 ? 's' : ''}</p>
                 </div>
 
                 {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>}
@@ -68,10 +67,9 @@ const ManagerApprovals = () => {
                             <table className="min-w-full text-sm">
                                 <thead className="bg-gray-50 border-b border-gray-200">
                                     <tr>
-                                        <th className="text-left px-5 py-3 font-semibold text-gray-600">Approval Subject</th>
+                                        <th className="text-left px-5 py-3 font-semibold text-gray-600">Expense ID</th>
                                         <th className="text-left px-5 py-3 font-semibold text-gray-600">Request Owner</th>
                                         <th className="text-left px-5 py-3 font-semibold text-gray-600">Category</th>
-                                        <th className="text-left px-5 py-3 font-semibold text-gray-600">Status</th>
                                         <th className="text-right px-5 py-3 font-semibold text-gray-600">Total Amount</th>
                                         <th className="text-left px-5 py-3 font-semibold text-gray-600">Receipt</th>
                                         <th className="text-left px-5 py-3 font-semibold text-gray-600">Action</th>
@@ -83,7 +81,6 @@ const ManagerApprovals = () => {
                                             <td className="px-5 py-3 font-mono text-xs text-gray-700">{expense.id}</td>
                                             <td className="px-5 py-3 font-medium text-gray-800">{expense.employee_name || '—'}</td>
                                             <td className="px-5 py-3">{expense.category}</td>
-                                            <td className="px-5 py-3"><StatusBadge status={expense.status} /></td>
                                             <td className="px-5 py-3 text-right font-mono font-medium">{expense.original_amount.toFixed(2)} {expense.currency}</td>
                                             <td className="px-5 py-3">
                                                 {buildReceiptUrl(expense) ? (

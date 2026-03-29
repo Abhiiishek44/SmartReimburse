@@ -61,6 +61,9 @@ class ApprovalRule(Base):
     is_manager_approver = Column(Boolean, default=False)
     is_sequential = Column(Boolean, default=True)
     min_approval_percentage = Column(Float, default=100.0)
+    approval_type = Column(String, nullable=False, default="SEQUENTIAL")
+    percentage_value = Column(Float, nullable=True)
+    specific_approver_id = Column(GUID, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     company = relationship("Company", back_populates="approval_rules")
@@ -95,6 +98,10 @@ class Expense(Base):
     receipt_file = Column(String, nullable=True)
     receipt_original_name = Column(String, nullable=True)
     status = Column(String, nullable=False, default="draft")  # draft, submitted, pending, approved, rejected, reimbursed
+    current_approval_step = Column(Integer, default=0)
+    approval_type = Column(String, nullable=False, default="SEQUENTIAL")
+    percentage_value = Column(Float, nullable=True)
+    specific_approver_id = Column(GUID, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     employee = relationship("User", back_populates="expenses", foreign_keys=[employee_id])

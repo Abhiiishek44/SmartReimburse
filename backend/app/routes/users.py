@@ -28,3 +28,12 @@ def update_role(user_id: str, data: UserUpdateRole, current_user: User = Depends
 @router.put("/{user_id}/assign-manager", response_model=UserResponse)
 def assign_manager(user_id: str, data: AssignManagerRequest, current_user: User = Depends(get_admin_user), db: Session = Depends(get_db)):
     return user_service.assign_manager(db, user_id, current_user.company_id, data)
+
+
+@router.put("/{user_id}/reset-password", response_model=UserResponse)
+def reset_password(user_id: str, data: dict, current_user: User = Depends(get_admin_user), db: Session = Depends(get_db)):
+    new_password = data.get("password")
+    if not new_password:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="Password is required")
+    return user_service.reset_password(db, user_id, current_user.company_id, new_password)

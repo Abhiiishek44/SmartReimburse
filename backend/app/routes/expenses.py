@@ -55,6 +55,11 @@ def all_expenses(current_user: User = Depends(get_current_user), db: Session = D
     return expense_service.get_all_expenses(db, current_user.company_id)
 
 
+@router.get("/expenses/{expense_id}", response_model=ExpenseResponse)
+def get_expense(expense_id: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return expense_service.get_expense_by_id(db, expense_id, current_user.company_id)
+
+
 @router.post("/expenses/{expense_id}/submit", response_model=ExpenseResponse)
 def submit_expense(expense_id: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     return expense_service.submit_expense(db, expense_id, current_user.id, current_user.company_id)
@@ -65,6 +70,12 @@ def submit_expense(expense_id: str, current_user: User = Depends(get_current_use
 @router.get("/approvals/pending", response_model=List[ExpenseResponse])
 def pending_approvals(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     return expense_service.get_pending_approvals(db, current_user.id, current_user.company_id)
+
+
+@router.get("/approvals/history", response_model=List[ExpenseResponse])
+def approval_history(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    include_all = current_user.role in {"finance", "director"}
+    return expense_service.get_approval_history(db, current_user.id, current_user.company_id, include_all=include_all)
 
 
 @router.post("/approvals/{expense_id}/approve", response_model=ExpenseResponse)

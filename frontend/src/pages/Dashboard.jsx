@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router';
-import { getPendingApprovals } from '../api/expensesApi';
+import { getManagerPendingApprovals } from '../api/expensesApi';
 import StatusBadge from '../components/StatusBadge';
 
 const Dashboard = () => {
@@ -22,7 +22,7 @@ const Dashboard = () => {
             setLoadingApprovals(true);
             setApprovalsError('');
             try {
-                const res = await getPendingApprovals();
+                const res = await getManagerPendingApprovals();
                 setPendingApprovals(res.data || []);
             } catch (err) {
                 setApprovalsError(err.response?.data?.detail || 'Failed to load pending approvals.');
@@ -47,23 +47,45 @@ const Dashboard = () => {
                     </span>
                 </div>
                 
-                <div className="mt-8">
+                <div className="mt-8 space-y-4">
                     {user?.role === 'admin' && (
-                        <div className="bg-indigo-50 border border-indigo-100 p-6 rounded-lg transition-all hover:shadow-md">
-                            <h2 className="text-xl font-semibold mb-2 text-indigo-900">Admin Panel</h2>
-                            <p className="text-indigo-700 mb-4">Manage users, approval rules, and configure company settings.</p>
-                            <Link to="/admin" className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg transition-colors shadow-sm font-medium">
-                                Go to Admin Dashboard
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <Link to="/admin" className="bg-indigo-50 border border-indigo-100 p-6 rounded-lg transition-all hover:shadow-md">
+                                <h2 className="text-lg font-semibold mb-2 text-indigo-900">Admin Dashboard</h2>
+                                <p className="text-indigo-700">Overview of company stats.</p>
+                            </Link>
+                            <Link to="/company" className="bg-white border border-gray-100 p-6 rounded-lg transition-all hover:shadow-md">
+                                <h2 className="text-lg font-semibold mb-2 text-gray-900">Company Profile</h2>
+                                <p className="text-gray-600">Update company details.</p>
+                            </Link>
+                            <Link to="/users" className="bg-white border border-gray-100 p-6 rounded-lg transition-all hover:shadow-md">
+                                <h2 className="text-lg font-semibold mb-2 text-gray-900">User Management</h2>
+                                <p className="text-gray-600">Create managers and employees.</p>
+                            </Link>
+                            <Link to="/expenses/all" className="bg-white border border-gray-100 p-6 rounded-lg transition-all hover:shadow-md">
+                                <h2 className="text-lg font-semibold mb-2 text-gray-900">All Expenses</h2>
+                                <p className="text-gray-600">Review every expense.</p>
                             </Link>
                         </div>
                     )}
                     {user?.role === 'manager' && (
                         <div className="space-y-4">
-                            <div className="bg-teal-50 border border-teal-100 p-6 rounded-lg transition-all hover:shadow-md">
-                                <h2 className="text-xl font-semibold mb-2 text-teal-900">Pending Approvals</h2>
-                                <p className="text-teal-700 mb-4">Review, approve, or reject employee reimbursement claims and expenses.</p>
-                                <Link to="/approvals" className="inline-block bg-teal-600 hover:bg-teal-700 text-white px-5 py-2.5 rounded-lg transition-colors shadow-sm font-medium">
-                                    View Pending Expenses
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <Link to="/manager/approvals" className="bg-teal-50 border border-teal-100 p-6 rounded-lg transition-all hover:shadow-md">
+                                    <h2 className="text-lg font-semibold mb-2 text-teal-900">Pending Approvals</h2>
+                                    <p className="text-teal-700">Review employee requests.</p>
+                                </Link>
+                                <Link to="/expenses/team" className="bg-white border border-gray-100 p-6 rounded-lg transition-all hover:shadow-md">
+                                    <h2 className="text-lg font-semibold mb-2 text-gray-900">Team Expenses</h2>
+                                    <p className="text-gray-600">Track team reimbursements.</p>
+                                </Link>
+                                <Link to="/expenses/my" className="bg-white border border-gray-100 p-6 rounded-lg transition-all hover:shadow-md">
+                                    <h2 className="text-lg font-semibold mb-2 text-gray-900">My Expenses</h2>
+                                    <p className="text-gray-600">View your submissions.</p>
+                                </Link>
+                                <Link to="/expenses/submit" className="bg-white border border-gray-100 p-6 rounded-lg transition-all hover:shadow-md">
+                                    <h2 className="text-lg font-semibold mb-2 text-gray-900">Submit Expense</h2>
+                                    <p className="text-gray-600">Upload a new receipt.</p>
                                 </Link>
                             </div>
 
@@ -104,11 +126,38 @@ const Dashboard = () => {
                         </div>
                     )}
                     {user?.role === 'employee' && (
-                        <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-lg transition-all hover:shadow-md">
-                            <h2 className="text-xl font-semibold mb-2 text-emerald-900">Submit Expense</h2>
-                            <p className="text-emerald-700 mb-4">File new mileage claims, upload receipts, and manage your past submissions.</p>
-                            <Link to="/expenses/submit" className="inline-block bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-lg transition-colors shadow-sm font-medium">
-                                Submit New Expense
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <Link to="/expenses/submit" className="bg-emerald-50 border border-emerald-100 p-6 rounded-lg transition-all hover:shadow-md">
+                                <h2 className="text-lg font-semibold mb-2 text-emerald-900">Submit Expense</h2>
+                                <p className="text-emerald-700">Upload receipts and requests.</p>
+                            </Link>
+                            <Link to="/expenses/my" className="bg-white border border-gray-100 p-6 rounded-lg transition-all hover:shadow-md">
+                                <h2 className="text-lg font-semibold mb-2 text-gray-900">My Expenses</h2>
+                                <p className="text-gray-600">Track your submissions.</p>
+                            </Link>
+                        </div>
+                    )}
+                    {user?.role === 'finance' && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <Link to="/finance/dashboard" className="bg-amber-50 border border-amber-100 p-6 rounded-lg transition-all hover:shadow-md">
+                                <h2 className="text-lg font-semibold mb-2 text-amber-900">Finance Approvals</h2>
+                                <p className="text-amber-700">Review pending reimbursements.</p>
+                            </Link>
+                            <Link to="/expenses/team" className="bg-white border border-gray-100 p-6 rounded-lg transition-all hover:shadow-md">
+                                <h2 className="text-lg font-semibold mb-2 text-gray-900">Team Expenses</h2>
+                                <p className="text-gray-600">View team submissions.</p>
+                            </Link>
+                        </div>
+                    )}
+                    {user?.role === 'director' && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <Link to="/director/dashboard" className="bg-orange-50 border border-orange-100 p-6 rounded-lg transition-all hover:shadow-md">
+                                <h2 className="text-lg font-semibold mb-2 text-orange-900">Director Approvals</h2>
+                                <p className="text-orange-700">Approve critical expenses.</p>
+                            </Link>
+                            <Link to="/expenses/team" className="bg-white border border-gray-100 p-6 rounded-lg transition-all hover:shadow-md">
+                                <h2 className="text-lg font-semibold mb-2 text-gray-900">Team Expenses</h2>
+                                <p className="text-gray-600">View all team submissions.</p>
                             </Link>
                         </div>
                     )}

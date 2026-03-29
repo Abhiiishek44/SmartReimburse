@@ -7,6 +7,7 @@ const navByRole = {
         { to: '/admin', label: '📊 Dashboard' },
         { to: '/company', label: '🏢 Company' },
         { to: '/users', label: '👥 Users' },
+        { to: '/admin/approval-settings', label: '✅ Approval Settings' },
         { to: '/expenses/all', label: '🧾 All Expenses' },
     ],
     manager: [
@@ -14,6 +15,14 @@ const navByRole = {
         { to: '/expenses/team', label: '👥 Team Expenses' },
         { to: '/expenses/my', label: '🧾 My Expenses' },
         { to: '/expenses/submit', label: '➕ Submit Expense' },
+    ],
+    finance: [
+        { to: '/finance/dashboard', label: '💰 Finance Approvals' },
+        { to: '/expenses/team', label: '👥 Team Expenses' },
+    ],
+    director: [
+        { to: '/director/dashboard', label: '🏛️ Director Approvals' },
+        { to: '/expenses/team', label: '👥 Team Expenses' },
     ],
     employee: [
         { to: '/expenses/submit', label: '➕ Submit Expense' },
@@ -58,9 +67,17 @@ const AppLayout = ({ children }) => {
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${
                             user?.role === 'admin' ? 'bg-purple-100 text-purple-700' :
                             user?.role === 'manager' ? 'bg-blue-100 text-blue-700' :
+                            user?.role === 'finance' ? 'bg-amber-100 text-amber-700' :
+                            user?.role === 'director' ? 'bg-orange-100 text-orange-700' :
                             'bg-green-100 text-green-700'
                         }`}>{user?.role}</span>
-                        <button onClick={handleLogout} className="text-sm text-gray-400 hover:text-gray-700 transition">Logout</button>
+                        <button
+                            onClick={handleLogout}
+                            className="inline-flex items-center gap-2 text-sm font-medium text-white bg-gradient-to-r from-rose-500 to-pink-500 px-3 py-1.5 rounded-full shadow-sm hover:from-rose-600 hover:to-pink-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 transition"
+                        >
+                            <span className="text-base">⎋</span>
+                            Logout
+                        </button>
                     </div>
                 </div>
             </header>

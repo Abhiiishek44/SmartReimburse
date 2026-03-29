@@ -23,8 +23,8 @@ def create_user(db: Session, company_id: uuid.UUID, data: UserCreate) -> User:
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    if data.role not in ("manager", "employee"):
-        raise HTTPException(status_code=400, detail="Role must be 'manager' or 'employee'")
+    if data.role not in ("manager", "employee", "finance", "director"):
+        raise HTTPException(status_code=400, detail="Role must be 'manager', 'employee', 'finance', or 'director'")
 
     # If employee, require manager_id and validate
     if data.role == "employee":
@@ -50,10 +50,10 @@ def create_user(db: Session, company_id: uuid.UUID, data: UserCreate) -> User:
 
 def update_user_role(db: Session, user_id: uuid.UUID, company_id: uuid.UUID, data: UserUpdateRole) -> User:
     user = get_user_by_id(db, user_id, company_id)
-    if data.role not in ("admin", "manager", "employee"):
+    if data.role not in ("admin", "manager", "employee", "finance", "director"):
         raise HTTPException(status_code=400, detail="Invalid role")
     user.role = data.role
-    if data.role in ("admin", "manager"):
+    if data.role in ("admin", "manager", "finance", "director"):
         user.manager_id = None
     db.commit()
     db.refresh(user)
@@ -70,6 +70,14 @@ def assign_manager(db: Session, user_id: uuid.UUID, company_id: uuid.UUID, data:
     if manager.id == user.id:
         raise HTTPException(status_code=400, detail="Employee cannot be their own manager")
     user.manager_id = data.manager_id
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def reset_password(db: Session, user_id: uuid.UUID, company_id: uuid.UUID, new_password: str) -> User:
+    user = get_user_by_id(db, user_id, company_id)
+    user.password = hash_password(new_password)
     db.commit()
     db.refresh(user)
     return user

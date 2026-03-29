@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { getUsers, createUser, updateUserRole, assignManager } from '../api/usersApi';
+import { getUsers, createUser, updateUserRole, assignManager, resetUserPassword } from '../api/usersApi';
 import AppLayout from '../components/AppLayout';
 
-const ROLES = ['manager', 'employee'];
+const ROLES = ['manager', 'employee', 'finance', 'director'];
 
 const UserManagement = () => {
     const [users, setUsers] = useState([]);
@@ -47,7 +47,25 @@ const UserManagement = () => {
         catch { setError('Failed to assign manager.'); }
     };
 
-    const roleColors = { admin: 'bg-purple-100 text-purple-700', manager: 'bg-blue-100 text-blue-700', employee: 'bg-green-100 text-green-700' };
+    const handleResetPassword = async (userId) => {
+        const newPassword = window.prompt('Enter a new password for this user:');
+        if (!newPassword) return;
+        try {
+            await resetUserPassword(userId, newPassword);
+            setSuccess('Password reset successfully.');
+            setTimeout(() => setSuccess(''), 3000);
+        } catch (err) {
+            setError(err.response?.data?.detail || 'Failed to reset password.');
+        }
+    };
+
+    const roleColors = {
+        admin: 'bg-purple-100 text-purple-700',
+        manager: 'bg-blue-100 text-blue-700',
+        finance: 'bg-amber-100 text-amber-700',
+        director: 'bg-orange-100 text-orange-700',
+        employee: 'bg-green-100 text-green-700',
+    };
 
     return (
         <AppLayout>
@@ -136,8 +154,16 @@ const UserManagement = () => {
                                                     <div className="flex items-center gap-2">
                                                         {u.role !== 'admin' && (
                                                             <select value={u.role} onChange={e => handleRoleChange(u.id, e.target.value)} className="border border-gray-200 rounded px-2 py-1 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                                                                {['manager', 'employee', 'admin'].map(r => <option key={r} value={r}>{r}</option>)}
+                                                                {['manager', 'employee', 'finance', 'director', 'admin'].map(r => <option key={r} value={r}>{r}</option>)}
                                                             </select>
+                                                        )}
+                                                        {u.role !== 'admin' && (
+                                                            <button
+                                                                onClick={() => handleResetPassword(u.id)}
+                                                                className="text-xs text-indigo-600 border border-indigo-200 px-2 py-1 rounded hover:bg-indigo-50 transition"
+                                                            >
+                                                                Reset Password
+                                                            </button>
                                                         )}
                                                         {u.role === 'employee' && (
                                                             <select defaultValue="" onChange={e => handleAssignManager(u.id, e.target.value)} className="border border-gray-200 rounded px-2 py-1 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
