@@ -70,7 +70,7 @@ const SubmitExpense = () => {
             return;
         }
 
-        setSaving(true); setError('');
+    setSaving(true); setError('');
         try {
             const formData = new FormData();
             formData.append('original_amount', form.original_amount);
@@ -84,7 +84,11 @@ const SubmitExpense = () => {
             await submitExpense(res.data.id);
             navigate('/expenses/my');
         } catch (err) {
-            setError(err.response?.data?.detail || 'Failed to submit expense.');
+            const detail = err.response?.data?.detail || err.response?.data?.message;
+            const fallback = err.request && !err.response
+                ? 'Could not reach the server. Ensure the backend is running and try again.'
+                : (err.message || 'Failed to submit expense.');
+            setError(detail || fallback);
             setStep('form');
         } finally { setSaving(false); }
     };

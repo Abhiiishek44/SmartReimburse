@@ -2,7 +2,7 @@
 
 ## ✅ Current Status: FULLY IMPLEMENTED
 
-Your OCR feature is **complete and ready to use**. All code is in place and tested.
+Your OCR feature is **complete and ready to use** once Tesseract is installed. All code is in place and tested.
 
 ---
 
@@ -38,10 +38,13 @@ OCRUpload.jsx    ──POST──> /ocr endpoint    ──calls──> pytessera
 
 ## 🔧 Installation Steps
 
-### 1. Tesseract OCR (Already Installed ✅)
-Your system already has Tesseract v5.5.0 installed.
+### 1. Tesseract OCR (Install & Verify)
+Verify installation:
+```bash
+tesseract --version
+```
 
-If you need to install on another machine:
+If you need to install:
 - **Windows**: Download from https://github.com/UB-Mannheim/tesseract/wiki
 - **macOS**: `brew install tesseract`
 - **Linux**: `sudo apt-get install tesseract-ocr`
@@ -253,7 +256,8 @@ Install additional Tesseract language packs
 
 ### "Tesseract not found" Error
 - Ensure Tesseract is installed and in PATH
-- On Windows, you may need to set: `pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'`
+- On Windows, you may need to set `TESSERACT_CMD` to the full path (example: `C:\Program Files\Tesseract-OCR\tesseract.exe`)
+- On Linux, install with: `sudo apt-get install tesseract-ocr`
 
 ### "Could not extract any text"
 - Image quality is too poor

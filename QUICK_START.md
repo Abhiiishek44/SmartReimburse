@@ -2,7 +2,20 @@
 
 ## ✅ Status: Ready to Run
 
-All code is implemented and dependencies are installed. Follow these steps to test:
+All code is implemented. Install Tesseract and dependencies before testing:
+
+---
+
+## 0️⃣ Install & Verify Tesseract
+
+```bash
+tesseract --version
+```
+
+If missing:
+- **Windows**: https://github.com/UB-Mannheim/tesseract/wiki
+- **macOS**: `brew install tesseract`
+- **Linux**: `sudo apt-get install tesseract-ocr`
 
 ---
 
@@ -122,7 +135,8 @@ Response:
 
 **"Tesseract not found"**
 - Run: `tesseract --version` to verify installation
-- On Windows, ensure Tesseract is in PATH
+- On Windows, set `TESSERACT_CMD` to the full path
+- On Linux, install with: `sudo apt-get install tesseract-ocr`
 
 **"Could not extract any text"**
 - Image quality is too poor

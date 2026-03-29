@@ -5,6 +5,8 @@ Uses pytesseract + Pillow with preprocessing for better accuracy.
 
 import re
 import io
+import os
+import shutil
 from datetime import datetime
 from typing import Optional
 
@@ -42,10 +44,33 @@ def _preprocess_image(image: Image.Image) -> Image.Image:
     return img
 
 
+def _ensure_tesseract_available() -> None:
+    """Ensure Tesseract is installed or configured before running OCR."""
+    env_cmd = os.getenv("TESSERACT_CMD")
+    if env_cmd:
+        pytesseract.pytesseract.tesseract_cmd = env_cmd
+
+    cmd = pytesseract.pytesseract.tesseract_cmd or "tesseract"
+    # If a full path is provided, validate it exists
+    if cmd != "tesseract" and not os.path.exists(cmd):
+        raise RuntimeError(
+            "Tesseract OCR command not found at the configured path. "
+            "Set TESSERACT_CMD to the full path of the tesseract binary."
+        )
+
+    if shutil.which(cmd) is None:
+        raise RuntimeError(
+            "Tesseract OCR is not installed or not in PATH. "
+            "Install it (Linux: sudo apt-get install tesseract-ocr) "
+            "or set TESSERACT_CMD to the full path of the binary."
+        )
+
+
 # ─── Text extraction ──────────────────────────────────────────────────────────
 
 def extract_text_from_image(image_bytes: bytes, content_type: str) -> str:
     """Run Tesseract OCR on the uploaded image bytes and return raw text."""
+    _ensure_tesseract_available()
     image = Image.open(io.BytesIO(image_bytes))
     # Convert RGBA/palette images to RGB before processing
     if image.mode not in ("RGB", "L"):
