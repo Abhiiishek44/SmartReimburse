@@ -51,6 +51,8 @@ def update_user_role(db: Session, user_id: uuid.UUID, company_id: uuid.UUID, dat
     if data.role not in ("admin", "manager", "employee"):
         raise HTTPException(status_code=400, detail="Invalid role")
     user.role = data.role
+    if data.role in ("admin", "manager"):
+        user.manager_id = None
     db.commit()
     db.refresh(user)
     return user
@@ -58,9 +60,13 @@ def update_user_role(db: Session, user_id: uuid.UUID, company_id: uuid.UUID, dat
 
 def assign_manager(db: Session, user_id: uuid.UUID, company_id: uuid.UUID, data: AssignManagerRequest) -> User:
     user = get_user_by_id(db, user_id, company_id)
+    if user.role != "employee":
+        raise HTTPException(status_code=400, detail="Only employees can be assigned a manager")
     manager = db.query(User).filter(User.id == data.manager_id, User.company_id == company_id, User.role == "manager").first()
     if not manager:
         raise HTTPException(status_code=400, detail="Manager not found in your company")
+    if manager.id == user.id:
+        raise HTTPException(status_code=400, detail="Employee cannot be their own manager")
     user.manager_id = data.manager_id
     db.commit()
     db.refresh(user)

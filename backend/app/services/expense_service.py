@@ -56,6 +56,7 @@ def submit_expense(db: Session, expense_id: uuid.UUID, employee_id: uuid.UUID, c
     expense = db.query(Expense).filter(
         Expense.id == expense_id,
         Expense.employee_id == employee_id,
+        Expense.company_id == company_id,
     ).first()
     if not expense:
         raise HTTPException(status_code=404, detail="Expense not found")
@@ -78,18 +79,41 @@ def submit_expense(db: Session, expense_id: uuid.UUID, employee_id: uuid.UUID, c
         return _enrich_expense(expense)
 
     steps = []
+    approver_ids = set()
 
     # If manager is approver, add manager as step 0
     if rule.is_manager_approver:
         employee = db.query(User).filter(User.id == employee_id).first()
         if employee and employee.manager_id:
             steps.append({"approver_id": employee.manager_id, "step_order": 1})
+            approver_ids.add(employee.manager_id)
 
     # Add rule approvers
     base_order = len(steps) + 1
     for ra in sorted(rule.approvers, key=lambda x: x.step_order):
+        if ra.approver_id in approver_ids:
+            continue
         step_order = (base_order + ra.step_order - 1) if rule.is_sequential else 1
         steps.append({"approver_id": ra.approver_id, "step_order": step_order})
+        approver_ids.add(ra.approver_id)
+
+    # Ensure at least one admin approver exists for the company
+    admin_users = db.query(User).filter(
+        User.company_id == company_id,
+        User.role == "admin",
+    ).order_by(User.created_at.asc()).all()
+    if admin_users:
+        if rule.is_sequential:
+            primary_admin = next((u for u in admin_users if u.id not in approver_ids), None)
+            if primary_admin:
+                steps.append({"approver_id": primary_admin.id, "step_order": len(steps) + 1})
+                approver_ids.add(primary_admin.id)
+        else:
+            for admin in admin_users:
+                if admin.id in approver_ids:
+                    continue
+                steps.append({"approver_id": admin.id, "step_order": 1})
+                approver_ids.add(admin.id)
 
     if not steps:
         expense.status = "approved"
@@ -186,6 +210,13 @@ def approve_expense(db: Session, expense_id: uuid.UUID, approver_id: uuid.UUID, 
     if not step:
         raise HTTPException(status_code=403, detail="You are not an approver for this expense or already actioned")
 
+    # Enforce sequential ordering
+    rule = db.query(ApprovalRule).filter(ApprovalRule.company_id == company_id).first()
+    if rule and rule.is_sequential:
+        pending_orders = sorted({s.step_order for s in expense.approval_steps if s.status == "pending"})
+        if pending_orders and step.step_order != pending_orders[0]:
+            raise HTTPException(status_code=400, detail="Waiting for earlier approvals")
+
     step.status = "approved"
     step.comment = data.comment
     step.approved_at = datetime.now(timezone.utc)
@@ -203,7 +234,6 @@ def approve_expense(db: Session, expense_id: uuid.UUID, approver_id: uuid.UUID, 
     else:
         # Check if min percentage met (parallel mode)
         pct = (approved_count / total) * 100
-        rule = db.query(ApprovalRule).filter(ApprovalRule.company_id == company_id).first()
         if rule and not rule.is_sequential and pct >= rule.min_approval_percentage:
             expense.status = "approved"
 
@@ -224,6 +254,12 @@ def reject_expense(db: Session, expense_id: uuid.UUID, approver_id: uuid.UUID, c
     ).first()
     if not step:
         raise HTTPException(status_code=403, detail="You are not an approver for this expense or already actioned")
+
+    rule = db.query(ApprovalRule).filter(ApprovalRule.company_id == company_id).first()
+    if rule and rule.is_sequential:
+        pending_orders = sorted({s.step_order for s in expense.approval_steps if s.status == "pending"})
+        if pending_orders and step.step_order != pending_orders[0]:
+            raise HTTPException(status_code=400, detail="Waiting for earlier approvals")
 
     step.status = "rejected"
     step.comment = data.comment

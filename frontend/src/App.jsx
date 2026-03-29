@@ -48,7 +48,7 @@ function App() {
               </ProtectedRoute>
             } />
             <Route path="/approvals" element={
-              <ProtectedRoute allowedRoles={['manager']}>
+              <ProtectedRoute allowedRoles={['manager', 'admin']}>
                 <PendingApprovals />
               </ProtectedRoute>
             } />
