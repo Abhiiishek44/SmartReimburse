@@ -9,7 +9,7 @@ const Login = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
-    if (user) return <Navigate to="/dashboard" replace />;
+    if (user) return <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} replace />;
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -20,8 +20,8 @@ const Login = () => {
         setError('');
         setLoading(true);
         try {
-            await login(formData.email, formData.password);
-            navigate('/dashboard');
+            const loggedInUser = await login(formData.email, formData.password);
+            navigate(loggedInUser.role === 'admin' ? '/admin' : '/dashboard');
         } catch (err) {
             setError(err.response?.data?.detail || 'Login failed. Please try again.');
         } finally {

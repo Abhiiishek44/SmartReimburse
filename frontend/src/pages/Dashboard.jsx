@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 
 const Dashboard = () => {
     const { user, logout } = useContext(AuthContext);
@@ -28,23 +28,29 @@ const Dashboard = () => {
                 <div className="mt-8">
                     {user?.role === 'admin' && (
                         <div className="bg-indigo-50 border border-indigo-100 p-6 rounded-lg transition-all hover:shadow-md">
-                            <h2 className="text-xl font-semibold mb-2 text-indigo-900">User Management</h2>
-                            <p className="text-indigo-700 mb-4">Manage users, adjust roles, and configure company settings across the entire platform.</p>
-                            <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg transition-colors shadow-sm font-medium">Manage Users</button>
+                            <h2 className="text-xl font-semibold mb-2 text-indigo-900">Admin Panel</h2>
+                            <p className="text-indigo-700 mb-4">Manage users, approval rules, and configure company settings.</p>
+                            <Link to="/admin" className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg transition-colors shadow-sm font-medium">
+                                Go to Admin Dashboard
+                            </Link>
                         </div>
                     )}
                     {user?.role === 'manager' && (
                         <div className="bg-teal-50 border border-teal-100 p-6 rounded-lg transition-all hover:shadow-md">
                             <h2 className="text-xl font-semibold mb-2 text-teal-900">Pending Approvals</h2>
                             <p className="text-teal-700 mb-4">Review, approve, or reject employee reimbursement claims and expenses.</p>
-                            <button className="bg-teal-600 hover:bg-teal-700 text-white px-5 py-2.5 rounded-lg transition-colors shadow-sm font-medium">View Pending Expenses</button>
+                            <Link to="/approvals" className="inline-block bg-teal-600 hover:bg-teal-700 text-white px-5 py-2.5 rounded-lg transition-colors shadow-sm font-medium">
+                                View Pending Expenses
+                            </Link>
                         </div>
                     )}
                     {user?.role === 'employee' && (
                         <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-lg transition-all hover:shadow-md">
                             <h2 className="text-xl font-semibold mb-2 text-emerald-900">Submit Expense</h2>
                             <p className="text-emerald-700 mb-4">File new mileage claims, upload receipts, and manage your past submissions.</p>
-                            <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-lg transition-colors shadow-sm font-medium">Submit New Expense</button>
+                            <Link to="/expenses/submit" className="inline-block bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-lg transition-colors shadow-sm font-medium">
+                                Submit New Expense
+                            </Link>
                         </div>
                     )}
                 </div>

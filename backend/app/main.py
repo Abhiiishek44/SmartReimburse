@@ -1,25 +1,29 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
-from app.routes import auth
+from app.routes import auth, admin
+from app.routes import company, users, expenses
 
-# Create tables
+# Create all tables
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Reimbursement App API")
+app = FastAPI(title="SmartReimburse API")
 
-# CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Allow all origins
-    allow_credentials=False, # Must be False when allow_origins is ["*"]
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Routers
 app.include_router(auth.router)
+app.include_router(admin.router)
+app.include_router(company.router)
+app.include_router(users.router)
+app.include_router(expenses.router)
 
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to Reimbursement App API"}
+    return {"message": "SmartReimburse API is running"}

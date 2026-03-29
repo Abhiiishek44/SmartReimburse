@@ -1,0 +1,67 @@
+import uuid
+from sqlalchemy.orm import Session
+from fastapi import HTTPException
+from app.models import User
+from app.schemas.company import UserCreate, UserUpdateRole, AssignManagerRequest
+from app.utils.security import hash_password
+
+
+def get_all_users(db: Session, company_id: uuid.UUID):
+    return db.query(User).filter(User.company_id == company_id).order_by(User.created_at.desc()).all()
+
+
+def get_user_by_id(db: Session, user_id: uuid.UUID, company_id: uuid.UUID) -> User:
+    user = db.query(User).filter(User.id == user_id, User.company_id == company_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+
+def create_user(db: Session, company_id: uuid.UUID, data: UserCreate) -> User:
+    # Check email uniqueness
+    existing = db.query(User).filter(User.email == data.email).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    if data.role not in ("manager", "employee"):
+        raise HTTPException(status_code=400, detail="Role must be 'manager' or 'employee'")
+
+    # If employee, validate manager_id
+    if data.role == "employee" and data.manager_id:
+        manager = db.query(User).filter(User.id == data.manager_id, User.company_id == company_id, User.role == "manager").first()
+        if not manager:
+            raise HTTPException(status_code=400, detail="Manager not found in your company")
+
+    new_user = User(
+        name=data.name,
+        email=data.email,
+        password=hash_password(data.password),
+        role=data.role,
+        company_id=company_id,
+        manager_id=data.manager_id if data.role == "employee" else None,
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
+
+
+def update_user_role(db: Session, user_id: uuid.UUID, company_id: uuid.UUID, data: UserUpdateRole) -> User:
+    user = get_user_by_id(db, user_id, company_id)
+    if data.role not in ("admin", "manager", "employee"):
+        raise HTTPException(status_code=400, detail="Invalid role")
+    user.role = data.role
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def assign_manager(db: Session, user_id: uuid.UUID, company_id: uuid.UUID, data: AssignManagerRequest) -> User:
+    user = get_user_by_id(db, user_id, company_id)
+    manager = db.query(User).filter(User.id == data.manager_id, User.company_id == company_id, User.role == "manager").first()
+    if not manager:
+        raise HTTPException(status_code=400, detail="Manager not found in your company")
+    user.manager_id = data.manager_id
+    db.commit()
+    db.refresh(user)
+    return user

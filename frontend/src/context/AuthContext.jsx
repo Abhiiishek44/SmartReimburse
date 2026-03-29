@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useState, useEffect } from 'react';
 import api from '../api/axios';
 
@@ -29,9 +30,10 @@ export const AuthProvider = ({ children }) => {
         const response = await api.post('/auth/login', { email, password });
         localStorage.setItem('access_token', response.data.access_token);
         localStorage.setItem('refresh_token', response.data.refresh_token);
-        
+
         const userRes = await api.get('/auth/me');
         setUser(userRes.data);
+        return userRes.data; // return user so Login.jsx can redirect by role
     };
 
     const signup = async (userData) => {
