@@ -79,7 +79,9 @@ const MyExpenses = () => {
                                         <th className="text-left px-5 py-3 font-semibold text-gray-600">Manager Approval</th>
                                         <th className="text-left px-5 py-3 font-semibold text-gray-600">Finance Approval</th>
                                         <th className="text-left px-5 py-3 font-semibold text-gray-600">Director Approval</th>
-                                        <th className="text-left px-5 py-3 font-semibold text-gray-600">Action</th>
+                                        <th className="text-left px-5 py-3 font-semibold text-gray-600 whitespace-nowrap">Actions</th>
+                                        <th className="text-center px-4 py-3 font-semibold text-gray-600 whitespace-nowrap">View Details</th>
+                                        <th className="text-center px-4 py-3 font-semibold text-gray-600 whitespace-nowrap">Receipts</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
@@ -114,14 +116,43 @@ const MyExpenses = () => {
                                                 })()}
                                             </td>
                                             <td className="px-5 py-3">
-                                                {e.status === 'draft' && (
-                                                    <button onClick={() => handleSubmit(e.id)} className="text-xs text-indigo-600 border border-indigo-200 px-3 py-1 rounded-lg hover:bg-indigo-50 transition font-medium">
+                                                {e.status === 'draft' ? (
+                                                    <button
+                                                        onClick={() => handleSubmit(e.id)}
+                                                        className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition font-medium"
+                                                    >
                                                         Submit
                                                     </button>
+                                                ) : (
+                                                    <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600 font-medium capitalize">
+                                                        {e.status}
+                                                    </span>
                                                 )}
-                                                <Link to={`/expense/${e.id}`} className="text-xs text-indigo-600 hover:text-indigo-500 ml-2">Details</Link>
-                                                {buildReceiptUrl(e) && (
-                                                    <a href={buildReceiptUrl(e)} target="_blank" rel="noreferrer" className="text-xs text-gray-500 hover:text-gray-700 ml-2">Receipt ↗</a>
+                                            </td>
+                                            <td className="px-4 py-3 text-center">
+                                                <Link
+                                                    to={`/expense/${e.id}`}
+                                                    className="inline-flex items-center justify-center gap-1 text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition font-medium whitespace-nowrap"
+                                                >
+                                                    View
+                                                    <span aria-hidden="true">→</span>
+                                                </Link>
+                                            </td>
+                                            <td className="px-4 py-3 text-center">
+                                                {buildReceiptUrl(e) ? (
+                                                    <a
+                                                        href={buildReceiptUrl(e)}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="inline-flex items-center justify-center gap-1 text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition font-medium whitespace-nowrap"
+                                                    >
+                                                        Receipt
+                                                        <span aria-hidden="true">↗</span>
+                                                    </a>
+                                                ) : (
+                                                    <span className="inline-flex items-center justify-center text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-500 whitespace-nowrap">
+                                                        No receipt
+                                                    </span>
                                                 )}
                                             </td>
                                         </tr>

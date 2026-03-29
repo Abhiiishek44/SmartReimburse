@@ -2,12 +2,17 @@ import os
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from app.database import engine, Base
+from app.database import engine, Base, SQLALCHEMY_DATABASE_URL
 from app.routes import auth, admin
 from app.routes import company, users, expenses, ocr
 
-# Create all tables
-Base.metadata.create_all(bind=engine)
+# Dev fallback: create tables automatically for local SQLite
+if SQLALCHEMY_DATABASE_URL.startswith("sqlite") and os.getenv("APP_ENV", "development").lower() in {
+    "development",
+    "dev",
+    "local",
+}:
+    Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="SmartReimburse API")
 
