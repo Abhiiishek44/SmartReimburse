@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getAllExpenses, getTeamExpenses } from '../api/expensesApi';
+import api from '../api/axios';
 import AppLayout from '../components/AppLayout';
 import StatusBadge from '../components/StatusBadge';
 
@@ -23,6 +24,12 @@ const ExpenseListPage = ({ mode }) => {
 
     const filtered = filter === 'all' ? expenses : expenses.filter(e => e.status === filter);
     const STATUSES = ['all', 'draft', 'pending', 'approved', 'rejected', 'reimbursed'];
+    const buildReceiptUrl = (expense) => {
+        if (expense.receipt_file) {
+            return `${api.defaults.baseURL}/${expense.receipt_file}`;
+        }
+        return expense.receipt_url || '';
+    };
 
     return (
         <AppLayout>
@@ -60,6 +67,7 @@ const ExpenseListPage = ({ mode }) => {
                                         <th className="text-left px-5 py-3 font-semibold text-gray-600">Description</th>
                                         <th className="text-right px-5 py-3 font-semibold text-gray-600">Amount</th>
                                         <th className="text-left px-5 py-3 font-semibold text-gray-600">Status</th>
+                                        <th className="text-left px-5 py-3 font-semibold text-gray-600">Receipt</th>
                                         <th className="text-left px-5 py-3 font-semibold text-gray-600">Approval</th>
                                     </tr>
                                 </thead>
@@ -72,6 +80,13 @@ const ExpenseListPage = ({ mode }) => {
                                             <td className="px-5 py-3 text-gray-500 max-w-xs truncate">{e.description || '—'}</td>
                                             <td className="px-5 py-3 text-right font-mono font-medium">{e.original_amount.toFixed(2)} {e.currency}</td>
                                             <td className="px-5 py-3"><StatusBadge status={e.status} /></td>
+                                            <td className="px-5 py-3">
+                                                {buildReceiptUrl(e) ? (
+                                                    <a href={buildReceiptUrl(e)} target="_blank" rel="noreferrer" className="text-xs text-indigo-600 hover:underline">View</a>
+                                                ) : (
+                                                    <span className="text-xs text-gray-400">—</span>
+                                                )}
+                                            </td>
                                             <td className="px-5 py-3">
                                                 <div className="flex flex-wrap gap-1">
                                                     {e.approval_steps?.map(step => (

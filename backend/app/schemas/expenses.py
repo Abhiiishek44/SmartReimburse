@@ -37,6 +37,8 @@ class ExpenseResponse(BaseModel):
     description: Optional[str]
     expense_date: date
     receipt_url: Optional[str]
+    receipt_file: Optional[str] = None
+    receipt_original_name: Optional[str] = None
     status: str
     created_at: datetime
     employee_name: Optional[str] = None

@@ -1,6 +1,9 @@
 import api from './axios';
 
-export const createExpense = (data) => api.post('/expenses', data);
+export const createExpense = (data) => {
+	const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
+	return api.post('/expenses', data, isFormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined);
+};
 export const getMyExpenses = () => api.get('/expenses/my');
 export const getTeamExpenses = () => api.get('/expenses/team');
 export const getAllExpenses = () => api.get('/expenses/all');

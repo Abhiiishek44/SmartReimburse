@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getMyExpenses, submitExpense } from '../api/expensesApi';
+import api from '../api/axios';
 import AppLayout from '../components/AppLayout';
 import StatusBadge from '../components/StatusBadge';
 
@@ -25,6 +26,12 @@ const MyExpenses = () => {
     const total = expenses.reduce((sum, e) => sum + e.original_amount, 0);
     const approved = expenses.filter(e => e.status === 'approved').length;
     const pending = expenses.filter(e => e.status === 'pending').length;
+    const buildReceiptUrl = (expense) => {
+        if (expense.receipt_file) {
+            return `${api.defaults.baseURL}/${expense.receipt_file}`;
+        }
+        return expense.receipt_url || '';
+    };
 
     return (
         <AppLayout>
@@ -86,8 +93,8 @@ const MyExpenses = () => {
                                                         Submit
                                                     </button>
                                                 )}
-                                                {e.receipt_url && (
-                                                    <a href={e.receipt_url} target="_blank" rel="noreferrer" className="text-xs text-gray-500 hover:text-gray-700 ml-2">Receipt ↗</a>
+                                                {buildReceiptUrl(e) && (
+                                                    <a href={buildReceiptUrl(e)} target="_blank" rel="noreferrer" className="text-xs text-gray-500 hover:text-gray-700 ml-2">Receipt ↗</a>
                                                 )}
                                             </td>
                                         </tr>

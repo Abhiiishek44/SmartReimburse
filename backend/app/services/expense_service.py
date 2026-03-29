@@ -1,11 +1,23 @@
 import uuid
-from datetime import datetime, timezone
+import os
+import shutil
+from pathlib import Path
+from datetime import datetime, timezone, date
 from sqlalchemy.orm import Session
-from fastapi import HTTPException
+from fastapi import HTTPException, UploadFile
 from app.models import Expense, ExpenseApproval, User
-from app.schemas.expenses import ExpenseCreate, ApproveRejectRequest
+from app.schemas.expenses import ApproveRejectRequest
 
 CATEGORIES = ["Travel", "Meals", "Accommodation", "Equipment", "Software", "Training", "Medical", "Other"]
+ALLOWED_RECEIPT_TYPES = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "application/pdf": ".pdf",
+}
+MAX_RECEIPT_SIZE_BYTES = 5 * 1024 * 1024
+UPLOAD_SUBDIR = os.path.join("uploads", "receipts")
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+UPLOAD_DIR = os.path.join(BASE_DIR, UPLOAD_SUBDIR)
 
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -28,19 +40,60 @@ def _get_expense_or_404(db: Session, expense_id: uuid.UUID, company_id: uuid.UUI
     return expense
 
 
+def _save_receipt_file(file: UploadFile) -> tuple[str, str]:
+    if not file or not file.filename:
+        raise HTTPException(status_code=400, detail="Receipt file is required")
+    if file.content_type not in ALLOWED_RECEIPT_TYPES:
+        raise HTTPException(status_code=400, detail="Only JPG, PNG, or PDF receipts are allowed")
+
+    file.file.seek(0, os.SEEK_END)
+    file_size = file.file.tell()
+    file.file.seek(0)
+    if file_size > MAX_RECEIPT_SIZE_BYTES:
+        raise HTTPException(status_code=400, detail="Receipt file must be 5MB or less")
+
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+    original_name = file.filename
+    suffix = Path(original_name).suffix.lower()
+    if suffix not in {".jpg", ".jpeg", ".png", ".pdf"}:
+        suffix = ALLOWED_RECEIPT_TYPES[file.content_type]
+    if suffix == ".jpeg":
+        suffix = ".jpg"
+
+    stored_name = f"{uuid.uuid4().hex}{suffix}"
+    abs_path = os.path.join(UPLOAD_DIR, stored_name)
+    with open(abs_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    relative_path = os.path.join(UPLOAD_SUBDIR, stored_name).replace("\\", "/")
+    return relative_path, original_name
+
+
 # ─── Create ───────────────────────────────────────────────────────────────────
 
-def create_expense(db: Session, employee_id: uuid.UUID, company_id: uuid.UUID, data: ExpenseCreate) -> Expense:
+def create_expense(
+    db: Session,
+    employee_id: uuid.UUID,
+    company_id: uuid.UUID,
+    original_amount: float,
+    currency: str,
+    category: str,
+    description: str | None,
+    expense_date: date,
+    receipt_file: UploadFile,
+) -> Expense:
+    receipt_path, receipt_original_name = _save_receipt_file(receipt_file)
     expense = Expense(
         employee_id=employee_id,
         company_id=company_id,
-        amount=data.original_amount,   # Will be converted on submit
-        original_amount=data.original_amount,
-        currency=data.currency,
-        category=data.category,
-        description=data.description,
-        expense_date=data.expense_date,
-        receipt_url=data.receipt_url,
+        amount=original_amount,   # Will be converted on submit
+        original_amount=original_amount,
+        currency=currency,
+        category=category,
+        description=description,
+        expense_date=expense_date,
+        receipt_file=receipt_path,
+        receipt_original_name=receipt_original_name,
         status="draft",
     )
     db.add(expense)

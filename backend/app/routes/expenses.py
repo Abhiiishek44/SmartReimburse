@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from typing import List
+from datetime import date
 from app.database import get_db
 from app.dependencies import get_current_user
 from app.models import User
-from app.schemas.expenses import ExpenseCreate, ExpenseResponse, ApproveRejectRequest
+from app.schemas.expenses import ExpenseResponse, ApproveRejectRequest
 from app.services import expense_service
 
 router = APIRouter(tags=["expenses"])
@@ -13,8 +14,27 @@ router = APIRouter(tags=["expenses"])
 # ─── Expense CRUD ─────────────────────────────────────────────────────────────
 
 @router.post("/expenses", response_model=ExpenseResponse, status_code=201)
-def create_expense(data: ExpenseCreate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    return expense_service.create_expense(db, current_user.id, current_user.company_id, data)
+def create_expense(
+    original_amount: float = Form(...),
+    currency: str = Form(...),
+    category: str = Form(...),
+    description: str | None = Form(None),
+    expense_date: date = Form(...),
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return expense_service.create_expense(
+        db,
+        current_user.id,
+        current_user.company_id,
+        original_amount,
+        currency,
+        category,
+        description,
+        expense_date,
+        file,
+    )
 
 
 @router.get("/expenses/my", response_model=List[ExpenseResponse])

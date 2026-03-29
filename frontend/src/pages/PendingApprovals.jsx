@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { getPendingApprovals, approveExpense, rejectExpense } from '../api/expensesApi';
 import AppLayout from '../components/AppLayout';
 import StatusBadge from '../components/StatusBadge';
+import api from '../api/axios';
 
 const PendingApprovals = () => {
     const [expenses, setExpenses] = useState([]);
@@ -10,6 +11,12 @@ const PendingApprovals = () => {
     const [actioning, setActioning] = useState({});
     const [commentMap, setCommentMap] = useState({});
     const [expandedId, setExpandedId] = useState(null);
+    const buildReceiptUrl = (expense) => {
+        if (expense.receipt_file) {
+            return `${api.defaults.baseURL}/${expense.receipt_file}`;
+        }
+        return expense.receipt_url || '';
+    };
 
     const load = async () => {
         setLoading(true);
@@ -67,7 +74,7 @@ const PendingApprovals = () => {
                                             <span>📁 {exp.category}</span>
                                             <span>📅 {exp.expense_date}</span>
                                             {exp.description && <span>💬 {exp.description}</span>}
-                                            {exp.receipt_url && <a href={exp.receipt_url} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline">📎 Receipt</a>}
+                                            {buildReceiptUrl(exp) && <a href={buildReceiptUrl(exp)} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline">📎 Receipt</a>}
                                         </div>
 
                                         {/* Approval steps */}

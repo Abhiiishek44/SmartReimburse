@@ -80,6 +80,8 @@ class Expense(Base):
     description = Column(Text, nullable=True)
     expense_date = Column(Date, nullable=False)
     receipt_url = Column(String, nullable=True)
+    receipt_file = Column(String, nullable=True)
+    receipt_original_name = Column(String, nullable=True)
     status = Column(String, nullable=False, default="draft")  # draft, submitted, pending, approved, rejected, reimbursed
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
